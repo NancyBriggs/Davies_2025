@@ -1,7 +1,7 @@
 
 This repository contains the code for the analyses presented in Davies, et al, 2025. 
 
-Access the code here(https://nancybriggs.github.io/Davies_2025/code).
+Access the [code here](https://nancybriggs.github.io/Davies_2025/code).
 
 
 Davies K, Lappin JM, Briggs N, Isobel S, Steel Z. Does shame mediate the influence of 
