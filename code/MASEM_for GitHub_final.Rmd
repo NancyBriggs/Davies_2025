@@ -1,0 +1,670 @@
+---
+title: "Code for Davies et al, 2025"
+author: "Kimberley Davies & Nancy Briggs"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This document contains the code for the analysis reported in Davies, et al, 2025.
+
+Davies, K, Lappin, JM, Briggs, N, Isobel, S, Steel, Z. Does shame mediate the influence of trauma on psychosis? A systematic review and meta-analytic structural equation modelling approach, _Schizophrenia Research_, 275, 87-97,
+https://doi.org/10.1016/j.schres.2024.12.008.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+options(warnPartialMatchAttr = FALSE, 
+  warnPartialMatchDollar = FALSE,
+  warnPartialMatchArgs = FALSE)
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+# install.packages("readxl")                
+# install.packages("corpcor")                
+# install.packages("metaSEM")  
+# install.packages("OpenMx")
+# install.packages("MASS")
+# install.packages("semPlot")
+# install.packages("tidyverse")
+# install.packages("meta")
+# install.packages("metafor")
+# install.packages("esc")
+# install.packages("clubSandwich")
+
+library(readxl)
+library(corpcor)
+library(metaSEM)
+library(OpenMx)
+library(MASS)
+library(semPlot)
+library(tidyverse)
+library(dmetar)
+library(meta)
+library(metafor)
+library(esc)
+library(clubSandwich)
+
+
+```
+
+# Import data
+
+```{r}
+
+# You may need to edit the file path to import the data.
+MASEM_data_model1 <- read_excel("../PublicationFiles/MASEM_data_model1.xlsx")
+
+```
+
+
+
+# Examine heterogeneity 
+## Psychosis*Shame
+```{r}
+
+MASEM_data_model1<- MASEM_data_model1 %>%
+  group_by(Study, Label) %>% 
+  mutate(id_no = row_number())
+
+# random effect for Correlation within study
+
+res_masem_PS<-rma.mv(r_z, r_z_var,
+                     subset=(Label=="PS"),
+                     random = ~ 1 | Study/id_no,
+                     data=MASEM_data_model1)
+#res_masem_PS
+
+
+W <- diag(1/res_masem_PS$vi)
+X <- model.matrix(res_masem_PS)
+P <- W - W %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% W
+
+# Between-cluster heterogeneity
+100 * sum(res_masem_PS$sigma2) / (sum(res_masem_PS$sigma2) + (res_masem_PS$k-res_masem_PS$p)/sum(diag(P)))
+
+# Within-cluster heterogeneity
+100 * res_masem_PS$sigma2 / (sum(res_masem_PS$sigma2) + (res_masem_PS$k-res_masem_PS$p)/sum(diag(P)))
+
+```
+
+## Psychosis*Childhood Trauma
+
+```{r}
+
+res_masem_PCT<- rma.mv(r_z, r_z_var,
+                       subset=(Label=="PCT"),
+                       random = ~ 1 | Study/id_no,
+                       data=MASEM_data_model1)
+#res_masem_PCT
+
+W <- diag(1/res_masem_PCT$vi)
+X <- model.matrix(res_masem_PCT)
+P <- W - W %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% W
+
+# Between-cluster heterogeneity
+100 * sum(res_masem_PCT$sigma2) / (sum(res_masem_PCT$sigma2) + (res_masem_PCT$k-res_masem_PCT$p)/sum(diag(P)))
+
+# Within-cluster heterogeneity
+100 * res_masem_PCT$sigma2 / (sum(res_masem_PCT$sigma2) + 
+                                   (res_masem_PCT$k-res_masem_PCT$p)/sum(diag(P)))
+```
+
+## Psychosis*Lifetime PTE
+
+```{r}
+
+MASEM_data_model1<- MASEM_data_model1 %>%
+  group_by(Study, Label) %>% 
+  mutate(id_no = row_number())
+
+# random effect for Correlation within study
+res_masem_PLT<-rma.mv(r_z, r_z_var,
+                     subset=(Label=="PLT"),
+                     random = ~ 1 | Study/id_no,
+                     data=MASEM_data_model1)
+#res_masem_PLT
+
+W <- diag(1/res_masem_PLT$vi)
+X <- model.matrix(res_masem_PLT)
+P <- W - W %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% W
+
+# Between-cluster heterogeneity
+100 * sum(res_masem_PLT$sigma2) / (sum(res_masem_PLT$sigma2) + (res_masem_PLT$k-res_masem_PLT$p)/sum(diag(P)))
+
+# Within-cluster heterogeneity
+100 * res_masem_PLT$sigma2 / (sum(res_masem_PLT$sigma2) + (res_masem_PLT$k-res_masem_PLT$p)/sum(diag(P)))
+
+```
+
+## Shame*Lifetime PTE
+
+```{r}
+
+MASEM_data_model1<- MASEM_data_model1 %>%
+  group_by(Study, Label) %>% 
+  mutate(id_no = row_number())
+
+# random effect for Correlation within study
+res_masem_SLT<- rma.mv(r_z, r_z_var,
+                       subset=(Label=="SLT"),
+                       random = ~ 1 | Study/id_no,
+                       data=MASEM_data_model1)
+#res_masem_SLT
+
+W <- diag(1/res_masem_SLT$vi)
+X <- model.matrix(res_masem_SLT)
+P <- W - W %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% W
+
+# Between-cluster heterogeneity
+100 * sum(res_masem_SLT$sigma2) / (sum(res_masem_SLT$sigma2) + (res_masem_SLT$k-res_masem_SLT$p)/sum(diag(P)))
+
+# Within-cluster heterogeneity
+100 * res_masem_SLT$sigma2 / (sum(res_masem_SLT$sigma2) + (res_masem_SLT$k-res_masem_SLT$p)/sum(diag(P)))
+```
+
+## Shame*Childhood PTE
+
+```{r}
+
+MASEM_data_model1<- MASEM_data_model1 %>%
+  group_by(Study, Label) %>% 
+  mutate(id_no = row_number())
+
+# random effect for Correlation within study
+res_masem_SCT<-rma.mv(r_z, r_z_var,
+                      subset=(Label=="SCT"),
+                      random = ~ 1 | Study/id_no,
+                      data=MASEM_data_model1)
+#res_masem_SCT
+
+W <- diag(1/res_masem_SCT$vi)
+X <- model.matrix(res_masem_SCT)
+P <- W - W %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% W
+
+# Between-cluster heterogeneity
+100 * sum(res_masem_SCT$sigma2) / (sum(res_masem_SCT$sigma2) + (res_masem_SCT$k-res_masem_SCT$p)/sum(diag(P)))
+
+# Within-cluster heterogeneity
+100 * res_masem_SCT$sigma2 / (sum(res_masem_SCT$sigma2) + (res_masem_SCT$k-res_masem_SCT$p)/sum(diag(P)))
+```
+
+
+
+# Models
+
+This code is adapted from Wilson et al. (2016)
+
+Wilson, S. J., Polanin, J. R., & Lipsey, M. W. (2016). Fitting meta-analytic structural equation models with complex datasets. Research synthesis methods, 7(2), 121–139. https://doi.org/10.1002/jrsm.1199.
+
+## Convert n to inverse sample size weighting
+
+```{r}
+MASEM_data_model1$inv_n <- 1/MASEM_data_model1$n
+```
+
+## Create multilevel model
+
+The code calculates the correlation coefficients for the effects, allowing for multiple effects from a single study.
+
+
+Table 3. Pooled correlation matrix for childhood and lifetime PTEs.
+
+```{r}
+
+ # constant sampling correlation assumption
+rho <- 0.6
+
+# constant sampling correlation working model
+V <- with(MASEM_data_model1, 
+          impute_covariance_matrix(vi = inv_n,
+                                   cluster = Study,
+                                   r = rho))
+
+# Multilevel Random Effects Model
+Step1 <-rma.mv (yi=ES, V=V,
+                data=MASEM_data_model1,
+                random = list(~1|Study, ~1|ES_ID),
+                method = "ML", mods=~factor(Cell)-1)
+
+summary (Step1)
+```
+
+## Extract variance-covariance matrix 
+
+```{r}
+Acov_model1 <-Step1$vb
+```
+
+## Create correlation matrix
+
+
+
+Uses the calculated correlation coefficients to create a matrix.
+
+```{r}
+Matrix_model1 <-vec2sm (vec = c( 1, Step1$b[1], Step1$b[2], Step1$b[3],
+                                 1, Step1$b[4], Step1$b[5],
+                                 1, Step1$b[6],
+                                 1),
+                         diag=TRUE)
+colnames(Matrix_model1) <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+rownames(Matrix_model1) <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+print(Matrix_model1)
+```
+
+# Enter sample size - this is total sample of all studies
+```{r}
+n<-3896
+```
+
+
+
+
+## Model 1 in paper
+
+### A-Matrix
+
+Defines paths to be estimated from Shame to Psychosis, Lifetime Trauma to Shame and Childhood Trauma to Shame.
+
+```{r}
+A_model1 <- create.mxMatrix(c(0, 0, 0, 0,
+                              "0.2*Shame_Psy", 0, 0, 0,
+                              0, "0.2*LT_Shame", 0, 0,
+                              0, "0.2*CT_Shame", 0, 0),
+                              ncol=4, nrow=4)
+
+dimnames(A_model1)[[1]] <- dimnames(A_model1)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+A_model1 
+
+```
+
+
+### S-Matrix
+
+Defines variances to be estimated, and variances fixed to 1.0
+
+```{r}
+
+S_model1<- create.mxMatrix(c("0.1*VarPsychosis", 0, 0, 0,
+                             0, "0.1*VarShame", 0, 0,
+                             0, 0, 1, 0,
+                             0, 0, 0, 1),
+                             ncol=4, nrow=4)
+
+dimnames(S_model1)[[1]] <- dimnames(S_model1)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+S_model1
+
+```
+
+
+
+
+### Run metaSEM model
+
+
+```{r}
+model1.metaSEM<-wls(Cov=Matrix_model1, 
+                    aCov=Acov_model1, 
+                    n=n,
+                    Amatrix=A_model1,
+                    Smatrix=S_model1, 
+                    cor.analysis=TRUE, 
+                    diag.constraints=TRUE,
+                    intervals.type = "LB",
+                    mx.algebras = list(
+                         TotindEffect = mxAlgebra(LT_Shame*Shame_Psy + CT_Shame*Shame_Psy,
+                                       name="TotindEffect" ),
+                         LPTEindirectEffect = mxAlgebra(LT_Shame*Shame_Psy , name="LPTEindirectEffect"),
+                         CPTEindirectEffect = mxAlgebra(CT_Shame*Shame_Psy , name="CPTEindirectEffect"),
+                         CompEffect = mxAlgebra(LT_Shame*Shame_Psy - CT_Shame*Shame_Psy,
+                                                        name="CompEffect")))
+
+summary(model1.metaSEM)
+
+```
+
+
+
+### Path Diagram
+```{r}
+sem.plot.model1 <- meta2semPlot(model1.metaSEM)
+
+
+# Create Labels (left to right, bottom to top)
+labels <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+# Plot
+semPaths(sem.plot.model1, 
+         whatLabels = "est", 
+         edge.color = "black", 
+         layout="tree", 
+         rotation=2,
+         nodeLabels = labels)
+
+```
+
+
+## Model 2 in paper
+
+### A-matrix
+
+```{r}
+A_model2 <- create.mxMatrix(c(0, 0, 0, 0,
+                              0, 0, 0, 0,
+                              "0.2*LT_Psy", "0.2*LT_Shame", 0, 0,
+                              "0.2*CT_Psy", "0.2*CT_Shame", 0, 0),
+                              ncol=4, nrow=4)
+
+dimnames(A_model2)[[1]] <- dimnames(A_model2)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+A_model2
+
+```
+
+### S-matrix
+
+
+```{r}
+
+S_model2 <- create.mxMatrix(c("0.1*VarPsychosis", 0, 0, 0,
+                              0, "0.1*VarShame", 0, 0,
+                              0, 0, 1, 0,
+                              0, 0, 0, 1),
+                     ncol=4, nrow=4)
+
+dimnames(S_model2)[[1]] <- dimnames(S_model2)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+S_model2
+
+
+```
+
+### Run metaSEM Model 
+
+
+```{r}
+model2.metaSEM<-wls(Cov=Matrix_model1, 
+                    aCov=Acov_model1, 
+                    n=n,
+                    Amatrix=A_model2,  
+                    Smatrix=S_model2, 
+                    cor.analysis=TRUE, 
+                    diag.constraints=TRUE, 
+                    intervals.type = "LB") 
+ 
+summary(model2.metaSEM)
+summary(model2.metaSEM, standardized=TRUE)
+
+```
+
+### Path Diagram
+
+
+
+```{r}
+sem.plot.model2 <- meta2semPlot(model2.metaSEM)
+
+
+# Create Labels (left to right, bottom to top)
+labels <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+# Plot
+semPaths(sem.plot.model2, 
+         whatLabels = "est", 
+         edge.color = "black", 
+         layout="tree", 
+         rotation=2,
+         nodeLabels = labels)
+
+```
+
+
+
+## Model 3 
+
+```{r}
+
+ # constant sampling correlation assumption
+rho <- 0.6
+
+# constant sampling correlation working model
+V <- with(MASEM_data_model1, 
+          impute_covariance_matrix(vi = inv_n,
+                                   cluster = Study,
+                                   r = rho))
+
+Step1_model3 <-rma.mv (yi=ES, V=V,
+                data=MASEM_data_model1,
+                random = list(~1|Study, ~1|ES_ID),
+                method = "ML", mods=~factor(Cell)-1)
+
+
+
+
+summary (Step1_model3)
+
+
+
+```
+
+### Extract variance-covariance matrix 
+
+```{r}
+Acov_model3 <-Step1_model3$vb
+
+```
+
+### Create correlation matrix 
+```{r}
+Matrix_model3 <-vec2sm (vec = c(1, Step1_model3$b[1], Step1_model3$b[2], Step1_model3$b[3],
+                                 1, Step1_model3$b[4], Step1_model3$b[5],
+                                 1, Step1_model3$b[6],
+                                 1),
+                         diag=TRUE)
+
+colnames(Matrix_model3) <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+rownames(Matrix_model3) <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+print(Matrix_model3)
+
+```
+
+### Enter sample size
+
+```{r}
+n<-3896
+```
+
+
+### A-Matrix
+
+```{r}
+A_model3 <- create.mxMatrix(c(0, 0, 0, 0,
+                              "0.2*Shame2Psy", 0, 0, 0,
+                              "0.2*LT2Psy", "0.2*LT2Shame", 0, 0, 
+                              "0.2*CT2Psy", "0.2*CT2Shame", 0, 0),
+                              ncol=4, nrow=4)
+
+dimnames(A_model3)[[1]] <- dimnames(A_model3)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+A_model3
+```
+
+### S-Matrix 
+```{r}
+S_model3<- create.mxMatrix(c("0.1*errPsychosis", 0, 0, 0,
+                             0, "0.1*errShame", 0, 0,
+                             0, 0, 1, 0,
+                             0, 0, 0, 1),
+                             ncol=4, nrow=4)
+
+dimnames(S_model3)[[1]] <- dimnames(S_model3)[[2]] <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+S_model3
+
+```
+
+
+
+### Run metaSEM model 
+
+```{r}
+model3.metaSEM<-wls(Cov=Matrix_model3, 
+                    aCov=Acov_model3, 
+                    n=n, 
+                    Amatrix=A_model3,
+                    Smatrix=S_model3, 
+                    cor.analysis=TRUE, 
+                    diag.constraints=TRUE,
+                    intervals.type = "LB",
+                    mx.algebras = list( TotalindirectEffect = mxAlgebra(LT2Shame*Shame2Psy + CT2Shame*Shame2Psy, name="TotalindirectEffect" ),
+                         LTindirectEffect = mxAlgebra(LT2Shame*Shame2Psy , name="LTindirectEffect" ) ,
+                         CTindirectEffect = mxAlgebra(CT2Shame*Shame2Psy , name="CTindirectEffect" ) ,
+                         CompindirectEffect = mxAlgebra(LT2Shame*Shame2Psy - CT2Shame*Shame2Psy,
+                                       name="CompindirectEffect")))
+
+summary(model3.metaSEM)
+```
+
+
+
+### Path Diagram
+
+```{r}
+
+sem.plot.model3 <- meta2semPlot(model3.metaSEM)
+
+
+# Create Labels (left to right, bottom to top)
+labels <- c("Psychosis", "Shame", "Lifetime Trauma", "Childhood Trauma")
+
+# Plot
+semPaths(sem.plot.model3, 
+         whatLabels = "est", 
+         edge.color = "black", 
+         layout="tree", 
+         rotation=2,
+         nodeLabels = labels)
+```
+
+# Publication Bias
+
+
+
+## Multilevel Eggers test 
+
+```{r}
+# Egger's test (Eq 21, Nakagawa, 2021)
+mod_ma <- rma.mv(r_z, r_z_var, mod = ~ sqrt(r_z_var), 
+                 random = list(~1|Study, ~1|ES_ID), 
+                 data = MASEM_data_model1)
+summary(mod_ma)
+# Because slope of the SE effect is p>0.05, there is no
+# evidence of small study bias according to the multilevel test
+
+# This is not needed becasue there is no relationship in the above model.
+mod_mb <- rma.mv(r_z, r_z_var,  mod = ~ r_z_var, 
+                 random = list(~1|Study, ~1|ES_ID), 
+                 data = MASEM_data_model1)
+summary(mod_mb)
+```
+
+
+
+## Test Risk of bias as a moderator 
+
+```{r}
+che.model.bias <- rma.mv(ES ~ 1 + relevel(factor(bias), ref="Poor"),
+                    V = V,
+                    random = ~ 1 | Author/ES_ID,
+                    data = MASEM_data_model1,
+                    sparse = TRUE)
+
+
+conf_int(che.model.bias, vcov = "CR2")
+coef_test(che.model.bias, vcov = "CR2")
+summary(che.model.bias)
+```
+
+
+## Funnel Plot
+
+```{r, fig.height=8}
+# Adapted from https://sakaluk.wordpress.com/2016/02/16/7-make-it-pretty-plots-for-meta-analysis/
+
+
+
+### fit equal-effects model
+res_masem_pb <- rma(r_z, r_z_var, data=MASEM_data_model1, measure="COR", method="EE")
+
+
+
+# Store the meta-analytic estimate and its standard error
+estimate = res_masem_pb$beta[1]
+se = res_masem_pb$se[1]
+max_se_val <- max(sqrt(MASEM_data_model1$r_z_var))
+se.seq=seq(0, max_se_val, 0.001)
+
+# Compute vectors of the lower-limit and upper limit values for
+# the 95% CI region, using the range of SE generated in the 
+# previous step, and the stored value of the meta-analytic estimate.
+
+ll95 = estimate-(1.96*se.seq)
+ul95 = estimate+(1.96*se.seq)
+
+# 99% CI region too
+
+ll99 = estimate-(3.29*se.seq)
+ul99 = estimate+(3.29*se.seq)
+
+# Do the same thing except now calculating the confidence interval
+# for your meta-analytic estimate based on the stored value of the
+# standard error
+
+meanll95 = estimate-(1.96*se)
+meanul95 = estimate+(1.96*se)
+
+# Make dataframe
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+# create variable that is concatenation of Correlation and Author
+MASEM_data_model1$Corr_auth<-paste(MASEM_data_model1$Label, ", ", MASEM_data_model1$Author)
+
+ 
+
+# Create the funnel plot.
+fp =
+  ggplot(aes(x = sqrt(MASEM_data_model1$r_z_var), y = ES), data = MASEM_data_model1) +
+  geom_point(size=2, aes(shape=Label, colour=Author) ) +
+  xlab('Standard Error') + 
+  ylab('Correlation Coefficient')+
+#CI regions
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+# line for the estimate itself.
+   geom_segment(aes(x = min(se.seq), y = estimate, 
+                    xend = max(se.seq),
+                    yend = estimate), 
+                linetype='dotted', data=dfCI) +
+  scale_x_reverse()+   
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+  scale_y_continuous(breaks=seq(-1,2,0.2))+
+  labs(shape="Correlation Type") +
+  coord_flip() +   # Flip the x and y axes
+  theme_classic( ) +
+  theme (
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 8),
+    legend.spacing.y = unit(.5, "cm")
+  )
+fp 
+
+
+```
+
+
+```{r}
+sessionInfo()
+```
